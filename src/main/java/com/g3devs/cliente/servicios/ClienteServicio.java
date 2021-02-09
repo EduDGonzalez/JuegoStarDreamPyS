@@ -1,6 +1,7 @@
 package com.g3devs.cliente.servicios;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -34,6 +35,12 @@ public class ClienteServicio extends Thread{
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+		try(Socket clienteSocket = new Socket()){
+			InetSocketAddress addr = new InetSocketAddress("", 0000);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void leerRespuesta(Socket clientSocket) {
@@ -46,6 +53,7 @@ public class ClienteServicio extends Thread{
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	private void enviarMensaje(Socket clientSocket) {
