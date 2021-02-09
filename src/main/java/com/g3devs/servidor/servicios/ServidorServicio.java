@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.g3devs.servidor.entidades.Jugador;
@@ -18,6 +19,7 @@ public class ServidorServicio extends Thread {
 	
 	private Socket socket;
 	private static Map<TipoPartida,Partida> listaPartidasEsperando = new HashMap<>();
+	private static Map<Integer, Partida> listaPartidasJugando = new HashMap<>();
 	private static int partidas = 1;
 
 	
@@ -39,12 +41,13 @@ public class ServidorServicio extends Thread {
 	
 	public void run() {
 		String [] info = leerPeticion();
+		
 		Jugador jugador = crearJugador(info);
-		buscarPartida(jugador,info);
+			peticionPartida(jugador,info);		
 	}
 
 
-	private void buscarPartida(Jugador jugador, String[] info) {
+	synchronized private void peticionPartida(Jugador jugador, String[] info) {
 		try {
 			ServidorReceptor.mutex.acquire();
 			if(listaPartidasEsperando.isEmpty()) {
@@ -52,13 +55,35 @@ public class ServidorServicio extends Thread {
 				jugador.setHost(true);
 				crearPartida(jugador,info);
 				partidas++;
+				ServidorReceptor.mutex.release();
+				wait();
 			}else {
-				System.out.println("se busca partida");
+				System.out.println("Buscando partida...");
+				buscarPartida(jugador,info);
+				ServidorReceptor.mutex.release();
+				notifyAll();
 			}
-			ServidorReceptor.mutex.release();
+			 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		System.out.println(listaPartidasJugando.size());
+	}
+
+	private void buscarPartida(Jugador jugador, String[] info) {
+		for (Map.Entry<TipoPartida, Partida> game : listaPartidasEsperando.entrySet()) {
+			if(game.getKey().getNombreTipoPartida().equalsIgnoreCase(info[1])) {
+				List<Jugador> players = game.getValue().getJugadores();
+				players.add(jugador);
+				jugador.setPartida(game.getValue());
+				game.getValue().setJugadores(players);
+				if(game.getValue().getJugadores().size()==game.getValue().getTipo().getMaxJugadores()) {
+						Partida partida = listaPartidasEsperando.remove(game.getKey());
+						listaPartidasJugando.put(partida.getId(), partida);
+					}
+				}
+			}
+		
 	}
 
 	private void crearPartida(Jugador jugador, String[] info) {
@@ -66,6 +91,7 @@ public class ServidorServicio extends Thread {
 		case "dados":
 			TipoPartida tipo = TipoPartida.DADOS;
 			Partida partida = new Partida(partidas,jugador,tipo);
+			jugador.setPartida(partida);
 			listaPartidasEsperando.put(TipoPartida.DADOS, partida);
 			break;
 		default:

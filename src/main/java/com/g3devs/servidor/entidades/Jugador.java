@@ -8,6 +8,7 @@ public class Jugador {
 	private int puerto;
 	private InetAddress addres;
 	private boolean host;
+	private Partida partida;
 
 	public String getNickName() {
 		return nickName;
@@ -32,6 +33,12 @@ public class Jugador {
 	}
 	public void setHost(boolean host) {
 		this.host = host;
+	}
+	public Partida getPartida() {
+		return partida;
+	}
+	public void setPartida(Partida partida) {
+		this.partida = partida;
 	}
 	
 }
