@@ -43,7 +43,7 @@ public class ServidorServicio extends Thread {
 		String [] info = leerPeticion();
 		
 		Jugador jugador = crearJugador(info);
-			peticionPartida(jugador,info);		
+			peticionPartida(jugador,info);
 	}
 
 
@@ -73,10 +73,8 @@ public class ServidorServicio extends Thread {
 	private void buscarPartida(Jugador jugador, String[] info) {
 		for (Map.Entry<TipoPartida, Partida> game : listaPartidasEsperando.entrySet()) {
 			if(game.getKey().getNombreTipoPartida().equalsIgnoreCase(info[1])) {
-				List<Jugador> players = game.getValue().getJugadores();
-				players.add(jugador);
+				game.getValue().getJugadores().add(jugador);
 				jugador.setPartida(game.getValue());
-				game.getValue().setJugadores(players);
 				if(game.getValue().getJugadores().size()==game.getValue().getTipo().getMaxJugadores()) {
 						Partida partida = listaPartidasEsperando.remove(game.getKey());
 						listaPartidasJugando.put(partida.getId(), partida);
