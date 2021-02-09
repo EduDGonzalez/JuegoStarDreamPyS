@@ -1,6 +1,29 @@
 package com.g3devs.servidor.servicios;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.g3devs.servidor.entidades.Jugador;
+import com.g3devs.servidor.entidades.Partida;
+import com.g3devs.servidor.entidades.TipoPartida;
+
 public class ServidorServicio extends Thread {
+	
+	private Socket socket;
+	private static Map<TipoPartida,Partida> listaPartidasEsperando = new HashMap<>();
+	private static int partidas = 1;
+
+	
+	public ServidorServicio (Socket socket) {
+		this.socket = socket;
+	}
 	
 	//Servicio servidor extends Thread.
 		// Recibe la petición del servidor.
@@ -15,7 +38,77 @@ public class ServidorServicio extends Thread {
 					//Devuelve la info del jugador(0) a su jugador(1)
 	
 	public void run() {
+		String [] info = leerPeticion();
+		Jugador jugador = crearJugador(info);
+		buscarPartida(jugador,info);
+	}
+
+
+	private void buscarPartida(Jugador jugador, String[] info) {
+		try {
+			ServidorReceptor.mutex.acquire();
+			if(listaPartidasEsperando.isEmpty()) {
+				System.out.println("creando partida "+partidas);
+				jugador.setHost(true);
+				crearPartida(jugador,info);
+				partidas++;
+			}else {
+				System.out.println("se busca partida");
+			}
+			ServidorReceptor.mutex.release();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void crearPartida(Jugador jugador, String[] info) {
+		switch (info[1]) {
+		case "dados":
+			TipoPartida tipo = TipoPartida.DADOS;
+			Partida partida = new Partida(partidas,jugador,tipo);
+			listaPartidasEsperando.put(TipoPartida.DADOS, partida);
+			break;
+		default:
+			//Sin implementar
+			break;
+		}
 		
+	}
+
+	private void enviarRespuesta() {
+		System.out.println("enviado mensaje");
+		try {
+			OutputStream os = socket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			PrintWriter pWriter = new PrintWriter(osw);
+			pWriter.println("Recibido");
+			pWriter.flush();
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private Jugador crearJugador(String[] info) {
+		Jugador player = new Jugador();
+		player.setNickName(info[2]);
+		player.setAddres(socket.getInetAddress());
+		player.setPuerto(socket.getPort());
+		player.setHost(false);
+		return player;
+	}
+
+	private String[] leerPeticion() {
+		String texto="";
+		try{
+			InputStream is = socket.getInputStream();
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader reader = new BufferedReader(isr);
+			texto = reader.readLine();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return texto.split(":");	
 	}
 
 }

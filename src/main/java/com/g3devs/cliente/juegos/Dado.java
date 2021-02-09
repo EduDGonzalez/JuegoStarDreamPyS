@@ -11,7 +11,7 @@ public class Dado {
 	
 	public int roll() {
 		
-		return null;
+		return (Integer) null;
 	}
 
 }
