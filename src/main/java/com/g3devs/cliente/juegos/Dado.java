@@ -12,6 +12,7 @@ public class Dado {
 	public int roll() {
 		
 		return (Integer) null;
+		iojij
 	}
 
 }
