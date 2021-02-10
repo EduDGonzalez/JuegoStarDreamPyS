@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.g3devs.servidor.entidades.Jugador;
@@ -54,18 +55,18 @@ public class ServidorServicio extends Thread {
 				crearPartida(jugador,info);
 				partidas++;
 				ServidorReceptor.mutex.release();
+				System.out.println(ServidorReceptor.dadosJugadores.availablePermits());
 				ServidorReceptor.dadosJugadores.acquire();
 			}else {
 				System.out.println("Buscando partida...");
 				buscarPartida(jugador,info);
-				ServidorReceptor.mutex.release();
 				ServidorReceptor.dadosJugadores.release();
+				ServidorReceptor.mutex.release();
 			}
 			 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println(listaPartidasJugando.size());
 		EnviarInfo(jugador);
 	}
 
@@ -74,8 +75,12 @@ public class ServidorServicio extends Thread {
 			OutputStream os = socket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			PrintWriter pWriter = new PrintWriter(osw);
-			
-			pWriter.println("Recibido");
+			List<Jugador>jugadores = jugador.getPartida().getJugadores();
+			String mensaje = jugador.getPartida().getTipo().getNombreTipoPartida()+":"+jugador.getPartida().getId();
+			for (int i = 0; i < jugadores.size(); i++) {
+				mensaje = mensaje.concat(":"+jugadores.get(i).getNickName()+":"+jugadores.get(i).isHost()+":"+jugadores.get(i).getAddres()+":"+jugadores.get(i).getPuerto());
+			}
+			pWriter.println(mensaje);
 			pWriter.flush();
 			
 		}catch(Exception e) {
