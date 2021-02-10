@@ -41,9 +41,14 @@ public class ServidorServicio extends Thread {
 	
 	public void run() {
 		String [] info = leerPeticion();
-		
-		Jugador jugador = crearJugador(info);
+		if(info[0].equalsIgnoreCase("crear")) {
+			Jugador jugador = crearJugador(info);
 			peticionPartida(jugador,info);
+			EnviarInfo(jugador);
+		}else {
+			//borrarPartida();
+		}
+		
 	}
 
 	private void peticionPartida(Jugador jugador, String[] info) {
@@ -60,14 +65,15 @@ public class ServidorServicio extends Thread {
 			}else {
 				System.out.println("Buscando partida...");
 				buscarPartida(jugador,info);
-				ServidorReceptor.dadosJugadores.release();
 				ServidorReceptor.mutex.release();
+				sleep(100);
+				ServidorReceptor.dadosJugadores.release();	
 			}
 			 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		EnviarInfo(jugador);
+		
 	}
 
 	private void EnviarInfo(Jugador jugador) {
@@ -106,7 +112,10 @@ public class ServidorServicio extends Thread {
 		switch (info[1]) {
 		case "dados":
 			TipoPartida tipo = TipoPartida.DADOS;
-			Partida partida = new Partida(partidas,jugador,tipo);
+			Partida partida = new Partida();
+			partida.setId(partidas);
+			partida.getJugadores().add(jugador);
+			partida.setTipo(tipo);
 			jugador.setPartida(partida);
 			listaPartidasEsperando.put(TipoPartida.DADOS, partida);
 			break;

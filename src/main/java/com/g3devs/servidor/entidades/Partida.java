@@ -14,6 +14,9 @@ public class Partida {
 		this.jugadores.add(jugador);
 		this.tipo = tipo;
 	}
+	public Partida() {
+		
+	}
 	
 	public int getId() {
 		return id;
