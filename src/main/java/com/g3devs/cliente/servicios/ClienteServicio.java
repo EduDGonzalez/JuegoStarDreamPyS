@@ -30,7 +30,7 @@ public class ClienteServicio extends Thread{
 			InetSocketAddress addr = new InetSocketAddress("localhost",5555);
 			clientSocket.connect(addr);
 			enviarMensaje(clientSocket);
-			//leerRespuesta(clientSocket);
+			leerRespuesta(clientSocket);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}

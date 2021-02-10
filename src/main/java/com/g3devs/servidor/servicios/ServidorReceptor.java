@@ -8,6 +8,7 @@ import java.util.concurrent.Semaphore;
 public class ServidorReceptor {
 	
 	public static Semaphore mutex = new Semaphore(1);
+	public static Semaphore dadosJugadores = new Semaphore(0);
 	
 	//Servidor.
 		// Recibe peticiones y las envia a la clase ServicioServidor.

@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.g3devs.servidor.entidades.Jugador;
@@ -46,8 +45,7 @@ public class ServidorServicio extends Thread {
 			peticionPartida(jugador,info);
 	}
 
-
-	synchronized private void peticionPartida(Jugador jugador, String[] info) {
+	private void peticionPartida(Jugador jugador, String[] info) {
 		try {
 			ServidorReceptor.mutex.acquire();
 			if(listaPartidasEsperando.isEmpty()) {
@@ -56,18 +54,33 @@ public class ServidorServicio extends Thread {
 				crearPartida(jugador,info);
 				partidas++;
 				ServidorReceptor.mutex.release();
-				wait();
+				ServidorReceptor.dadosJugadores.acquire();
 			}else {
 				System.out.println("Buscando partida...");
 				buscarPartida(jugador,info);
 				ServidorReceptor.mutex.release();
-				notifyAll();
+				ServidorReceptor.dadosJugadores.release();
 			}
 			 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		System.out.println(listaPartidasJugando.size());
+		EnviarInfo(jugador);
+	}
+
+	private void EnviarInfo(Jugador jugador) {
+		try {
+			OutputStream os = socket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			PrintWriter pWriter = new PrintWriter(osw);
+			
+			pWriter.println("Recibido");
+			pWriter.flush();
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void buscarPartida(Jugador jugador, String[] info) {
@@ -97,20 +110,6 @@ public class ServidorServicio extends Thread {
 			break;
 		}
 		
-	}
-
-	private void enviarRespuesta() {
-		System.out.println("enviado mensaje");
-		try {
-			OutputStream os = socket.getOutputStream();
-			OutputStreamWriter osw = new OutputStreamWriter(os);
-			PrintWriter pWriter = new PrintWriter(osw);
-			pWriter.println("Recibido");
-			pWriter.flush();
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	private Jugador crearJugador(String[] info) {
