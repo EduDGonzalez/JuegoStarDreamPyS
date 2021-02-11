@@ -5,10 +5,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
+import com.g3devs.servidor.entidades.TipoPartida;
+
 public class ServidorReceptor {
 	
 	public static Semaphore mutex = new Semaphore(1);
-	public static Semaphore dadosJugadores = new Semaphore(0);
+	public static Semaphore dadosJugadores = new Semaphore(1-(TipoPartida.DADOS.getMaxJugadores()-1));
 	
 	//Servidor.
 		// Recibe peticiones y las envia a la clase ServicioServidor.
