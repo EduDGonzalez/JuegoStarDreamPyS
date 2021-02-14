@@ -8,7 +8,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
+
+import com.g3devs.cliente.juegos.Dado;
 
 public class ClienteServicio extends Thread{
 	
@@ -35,12 +38,7 @@ public class ClienteServicio extends Thread{
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		try(Socket clienteSocket = new Socket()){
-			InetSocketAddress addr = new InetSocketAddress("", 0000);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	
 	}
 
 	private void leerRespuesta(Socket clientSocket) {
@@ -66,6 +64,40 @@ public class ClienteServicio extends Thread{
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	private void crearSocket() {
+		try {
+			ServerSocket ss = new ServerSocket();
+			InetSocketAddress add = new InetSocketAddress("localhost",5555);
+			ss.bind(add);
+				while(true) {
+					
+					try(Socket socket = ss.accept();){
+					InputStream ip = socket.getInputStream();
+					InputStreamReader isr = new InputStreamReader(ip);
+					BufferedReader br = new BufferedReader(isr);
+					String rp = br.readLine();
+					System.out.print(rp);
+					
+					 int n =Integer.parseInt(rp);
+					 
+					 Dado dado = new Dado();
+					 int v = dado.roll();
+					 if(n<v) {
+						 System.out.println("Has ganado la partida");
+					 }else {System.out.println("Has perdido la partida");}
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+					
+					
+				}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
 	}
 
 }
