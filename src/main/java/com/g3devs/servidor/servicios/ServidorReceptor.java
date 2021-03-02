@@ -27,7 +27,6 @@ public class ServidorReceptor {
 				System.out.println("============================");
 				while(true) {
 					redirigirPeticion(serverSocket);
-					
 				}	
 			}catch(Exception e) {
 				e.printStackTrace();

@@ -1,11 +1,8 @@
 package com.g3devs.cliente.servicios;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import com.g3devs.cliente.juegos.Dado;
+
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -42,10 +39,76 @@ public class ClienteServicio extends Thread{
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader reader = new BufferedReader(isr);
 			String respuesta = reader.readLine();
-			System.out.println(respuesta);
+			String[] respuestaDiv = respuesta.split(":");
+
+			gestionarRespuesta(respuestaDiv);
+
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	void gestionarRespuesta(String[] respuestaDiv)
+	{
+		String[] player1 = {respuestaDiv[2],respuestaDiv[3],respuestaDiv[4],respuestaDiv[5]};
+		String[] player2 = {respuestaDiv[6],respuestaDiv[7],respuestaDiv[8],respuestaDiv[9]};
+
+		if(player1[0].equals(nickName) && player1[1].equals("true"))
+		{
+			crearHost(player1[2], Integer.parseInt(player1[3]));
+		}
+		else if(player1[0].equals(nickName) && player1[1].equals("false"))
+		{
+			crearInvitado(player2[2], player2[3]);
+		}
+		else if (player2[0].equals(nickName) && player2[1].equals("true"))
+		{
+			crearHost(player2[2], Integer.parseInt(player2[3]));
+		}
+		else if (player2[0].equals(nickName) && player2[1].equals("false"))
+		{
+			crearInvitado(player1[2], player1[3]);
+		}
+	}
+
+	void crearHost(String ip, int puerto)
+	{
+
+	}
+
+	void crearInvitado(String ip, String puerto)
+	{
+		try(Socket clientSocket = new Socket();
+			OutputStream os = clientSocket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			PrintWriter writer = new PrintWriter(osw)){
+
+			InetSocketAddress addr = new InetSocketAddress(ip, Integer.parseInt(puerto));
+			send(addr,clientSocket,writer);
+
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	void send(InetSocketAddress addr,Socket clientSocket,PrintWriter writer)
+	{
+		while(!clientSocket.isConnected())
+		{
+			try
+			{
+				clientSocket.connect(addr);
+				writer.println(roll());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	int roll()
+	{
+		Dado dado = new Dado();
+		return dado.roll();
 	}
 
 	private void enviarMensaje(Socket clientSocket) {
@@ -59,5 +122,4 @@ public class ClienteServicio extends Thread{
 			e.printStackTrace();
 		}
 	}
-
 }
