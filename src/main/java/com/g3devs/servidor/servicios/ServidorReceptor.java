@@ -12,10 +12,6 @@ public class ServidorReceptor {
 	public static Semaphore mutex = new Semaphore(1);
 	public static Semaphore dadosJugadores = new Semaphore(1-(TipoPartida.DADOS.getMaxJugadores()-1));
 	
-	//Servidor.
-		// Recibe peticiones y las envia a la clase ServicioServidor.
-		// Almacena info de las partidas esperando y en curso (metodos sincronizados para acceder a estas).
-		// Almacenara los posibles semaforos para el servicio. (creo que no se necesitan semaforos)
 	
 	public void init() {
 			System.out.println("Creando socket Servidor");

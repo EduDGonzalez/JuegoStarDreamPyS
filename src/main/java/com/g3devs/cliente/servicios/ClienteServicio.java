@@ -4,19 +4,12 @@ import com.g3devs.cliente.juegos.Dado;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ClienteServicio extends Thread{
 	
 	private String nickName;
-	
-	
-	//Cliente extends Thread ( para varios clientes 10 )
-		// Pasar por parametros  primera comunicacion para crear o unirse a partida
-			//Espera a recibir respuesta (dormir conexion para ocupar menos memoria)
-		// Recibir info de contrincante
-		// Jugar partida contra contrincante usando clase Dados	(Empieza visitante)
-		// Pasar por parametros segunda comunicacion para finalizar partida (Solo Hosts)
 	
 	public ClienteServicio(String nombre) {
 		nickName = nombre;
@@ -40,7 +33,6 @@ public class ClienteServicio extends Thread{
 			BufferedReader reader = new BufferedReader(isr);
 			String respuesta = reader.readLine();
 			String[] respuestaDiv = respuesta.split(":");
-
 			gestionarRespuesta(respuestaDiv);
 
 		}catch(Exception e) {
@@ -55,7 +47,7 @@ public class ClienteServicio extends Thread{
 
 		if(player1[0].equals(nickName) && player1[1].equals("true"))
 		{
-			crearSocket(player1[2], Integer.parseInt(player1[3]));
+			crearSocket(player1[2], Integer.parseInt(player1[3]),respuestaDiv[1]);
 		}
 		else if(player1[0].equals(nickName) && player1[1].equals("false"))
 		{
@@ -63,17 +55,43 @@ public class ClienteServicio extends Thread{
 		}
 		else if (player2[0].equals(nickName) && player2[1].equals("true"))
 		{
-			crearSocket(player2[2], Integer.parseInt(player2[3]));
+			crearSocket(player2[2], Integer.parseInt(player2[3]),respuestaDiv[1]);
 		}
 		else if (player2[0].equals(nickName) && player2[1].equals("false"))
 		{
 			crearInvitado(player1[2], player1[3]);
 		}
 	}
+	
+	@SuppressWarnings({ "unused", "resource" })
+	void crearSocket(String ip, int puerto, String respuestaDiv){
+		try (ServerSocket ss = new ServerSocket();) {
+			InetSocketAddress add = new InetSocketAddress(ip, puerto);
+			ss.bind(add);
+			try (Socket socket = ss.accept();) {
+				InputStream in = socket.getInputStream();
+				InputStreamReader isr = new InputStreamReader(in);
+				BufferedReader br = new BufferedReader(isr);
+				String rp = br.readLine();
+				String inf[] = rp.split(":");
+				int num = Integer.parseInt(inf[0]);
+				Dado dado = new Dado();
+				int v = dado.roll();
+				if (num < v) {
+					System.out.println("Has ganado la partida");
+					cerrarPartida(socket, respuestaDiv, nickName);
 
-	void crearSocket(String ip, int puerto)
-	{
+				} else {
+					System.out.println("Has perdido la partida");
+					cerrarPartida(socket, respuestaDiv, inf[1]);
 
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	void crearInvitado(String ip, String puerto)
@@ -124,4 +142,17 @@ public class ClienteServicio extends Thread{
 			e.printStackTrace();
 		}
 	}
+	@SuppressWarnings("unused")
+	private void cerrarPartida(Socket clientSocket, String id, String nickName) {
+		try {
+			OutputStream os = clientSocket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			PrintWriter w = new PrintWriter(osw);
+			w.print("cerrar:" + id + ":"+ nickName);
+			w.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
