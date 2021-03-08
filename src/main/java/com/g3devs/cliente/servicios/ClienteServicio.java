@@ -13,32 +13,31 @@ import java.net.Socket;
 
 import com.g3devs.cliente.juegos.Dado;
 
-public class ClienteServicio extends Thread{
-	
+public class ClienteServicio extends Thread {
+
 	private String nickName;
-	
-	
-	//Cliente extends Thread ( para varios clientes 10 )
-		// Pasar por parametros  primera comunicacion para crear o unirse a partida
-			//Espera a recibir respuesta (dormir conexion para ocupar menos memoria)
-		// Recibir info de contrincante
-		// Jugar partida contra contrincante usando clase Dados	(Empieza visitante)
-		// Pasar por parametros segunda comunicacion para finalizar partida (Solo Hosts)
-	
+
+	// Cliente extends Thread ( para varios clientes 10 )
+	// Pasar por parametros primera comunicacion para crear o unirse a partida
+	// Espera a recibir respuesta (dormir conexion para ocupar menos memoria)
+	// Recibir info de contrincante
+	// Jugar partida contra contrincante usando clase Dados (Empieza visitante)
+	// Pasar por parametros segunda comunicacion para finalizar partida (Solo Hosts)
+
 	public ClienteServicio(String nombre) {
 		nickName = nombre;
 	}
 
 	public void run() {
-		try(Socket clientSocket = new Socket()){
-			InetSocketAddress addr = new InetSocketAddress("localhost",5555);
+		try (Socket clientSocket = new Socket()) {
+			InetSocketAddress addr = new InetSocketAddress("localhost", 5555);
 			clientSocket.connect(addr);
 			enviarMensaje(clientSocket);
 			leerRespuesta(clientSocket);
-		}catch(Exception e) {
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
 	}
 
 	private void leerRespuesta(Socket clientSocket) {
@@ -48,56 +47,64 @@ public class ClienteServicio extends Thread{
 			BufferedReader reader = new BufferedReader(isr);
 			String respuesta = reader.readLine();
 			System.out.println(respuesta);
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	private void enviarMensaje(Socket clientSocket) {
-		try{
+		try {
 			OutputStream os = clientSocket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			PrintWriter writer = new PrintWriter(osw);
-			writer.println("crear:dados:"+nickName);
+			writer.println("crear:dados:" + nickName);
 			writer.flush();
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	private void crearSocket() {
-		try {
-			ServerSocket ss = new ServerSocket();
-			InetSocketAddress add = new InetSocketAddress("localhost",5555);
+
+	@SuppressWarnings({ "unused", "resource" })
+	private void crearSocket(String ip, int puerto) {
+		try (ServerSocket ss = new ServerSocket();) {
+			InetSocketAddress add = new InetSocketAddress(ip, puerto);
 			ss.bind(add);
-				while(true) {
-					
-					try(Socket socket = ss.accept();){
-					InputStream ip = socket.getInputStream();
-					InputStreamReader isr = new InputStreamReader(ip);
-					BufferedReader br = new BufferedReader(isr);
-					String rp = br.readLine();
-					System.out.print(rp);
-					
-					 int n =Integer.parseInt(rp);
-					 
-					 Dado dado = new Dado();
-					 int v = dado.roll();
-					 if(n<v) {
-						 System.out.println("Has ganado la partida");
-					 }else {System.out.println("Has perdido la partida");}
-					}catch(Exception e) {
-						e.printStackTrace();
-					}
-					
-					
+			try (Socket socket = ss.accept();) {
+				InputStream in = socket.getInputStream();
+				InputStreamReader isr = new InputStreamReader(in);
+				BufferedReader br = new BufferedReader(isr);
+				String rp = br.readLine();
+				String inf[] = rp.split(":");
+				int num = Integer.parseInt(inf[0]);
+				Dado dado = new Dado();
+				int v = dado.roll();
+				if (num < v) {
+					System.out.println("Has ganado la partida");
+					cerrarPartida(socket, ip, nickName);
+
+				} else {
+					System.out.println("Has perdido la partida");
+					cerrarPartida(socket, ip, inf[1]);
+
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
-		
 	}
 
+	@SuppressWarnings("unused")
+	private void cerrarPartida(Socket clientSocket, String ip, String nickName) {
+		try {
+			OutputStream os = clientSocket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			PrintWriter w = new PrintWriter(osw);
+			w.print("cerrar partida :" + ip + "El ganador de la partida es :" + nickName);
+			w.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
