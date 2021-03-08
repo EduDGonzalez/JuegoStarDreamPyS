@@ -55,7 +55,7 @@ public class ClienteServicio extends Thread{
 
 		if(player1[0].equals(nickName) && player1[1].equals("true"))
 		{
-			crearHost(player1[2], Integer.parseInt(player1[3]));
+			crearSocket(player1[2], Integer.parseInt(player1[3]));
 		}
 		else if(player1[0].equals(nickName) && player1[1].equals("false"))
 		{
@@ -63,7 +63,7 @@ public class ClienteServicio extends Thread{
 		}
 		else if (player2[0].equals(nickName) && player2[1].equals("true"))
 		{
-			crearHost(player2[2], Integer.parseInt(player2[3]));
+			crearSocket(player2[2], Integer.parseInt(player2[3]));
 		}
 		else if (player2[0].equals(nickName) && player2[1].equals("false"))
 		{
@@ -71,7 +71,7 @@ public class ClienteServicio extends Thread{
 		}
 	}
 
-	void crearHost(String ip, int puerto)
+	void crearSocket(String ip, int puerto)
 	{
 
 	}
@@ -98,7 +98,9 @@ public class ClienteServicio extends Thread{
 			try
 			{
 				clientSocket.connect(addr);
-				writer.println(roll());
+				int num = roll();
+				String resultado = num + ":" + nickName;
+				writer.println(resultado);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
